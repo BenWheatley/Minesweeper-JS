@@ -9,9 +9,9 @@ let height = 3;
 let mineFraction = 0.1;
 
 const State = {
-    Unexplored: 'Unexplored',
-    Flagged: 'Flagged',
-    Open: 'Open'
+	Unexplored: 'Unexplored',
+	Flagged: 'Flagged',
+	Open: 'Open'
 };
 
 class Cell {
@@ -23,32 +23,32 @@ class Cell {
 
 function makeShuffledMinefield() {
 	let size = width * height;
-    let mineCount = size * mineFraction;
-    
-    var result = new Array(size);
-    
-    for (var i=0; i<size; i++) {
-    	result[i] = new Cell(i < mineCount);
-    }
-    
-    shuffleArray(result);
-    
-    return result;
+	let mineCount = size * mineFraction;
+	
+	var result = new Array(size);
+	
+	for (var i=0; i<size; i++) {
+		result[i] = new Cell(i < mineCount);
+	}
+	
+	shuffleArray(result);
+	
+	return result;
 }
 
 var minefield = makeShuffledMinefield();
 
 function createGrid() {
-    var html = "";
-    
-    for (var y=0; y<height; y++) {
-    	for (var x=0; x<width; x++) {
-        	html += cellHTML(x, y);
-        }
-        html += "<br />";
-    }
-    
-    document.getElementById('grid').innerHTML = html;
+	var html = "";
+	
+	for (var y=0; y<height; y++) {
+		for (var x=0; x<width; x++) {
+			html += cellHTML(x, y);
+		}
+		html += "<br />";
+	}
+	
+	document.getElementById('grid').innerHTML = html;
 }
 
 function cellID(x, y) {
@@ -61,16 +61,16 @@ function cellHTML(x, y) {
 
 function tapInCell(x, y) {
 	var index = y * width + x;
-    let id = cellID(x, y);
-    
-    var html = "";
-    if (minefield[index].mined) {
-    	html = "💣";
-    } else {
-    	let bytesPerSymbol = 3;
-    	html = "0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣".substr(surroundingMineCount(x, y) * bytesPerSymbol, bytesPerSymbol);
-    }
-    document.getElementById(id).innerHTML = html;
+	let id = cellID(x, y);
+	
+	var html = "";
+	if (minefield[index].mined) {
+		html = "💣";
+	} else {
+		let bytesPerSymbol = 3;
+		html = "0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣".substr(surroundingMineCount(x, y) * bytesPerSymbol, bytesPerSymbol);
+	}
+	document.getElementById(id).innerHTML = html;
 }
 
 function flagCell(index) {
@@ -79,38 +79,38 @@ function flagCell(index) {
 
 function surroundingMineCount(x, y) {
 	var count = 0;
-    
-    for (var ty=y-1; ty<=y+1; ty++) {
-        if (ty >= 0 && ty < height) {
-	        for (var tx=x-1; tx<=x+1; tx++) {
-                let inMiddle = (tx == x && ty == y);
-                if (tx >= 0 && tx < width && !(inMiddle)) {
-                	let t_index = ty * width + tx;
-                    if (minefield[t_index].mined) {
-                    	count++;
-                    }
-                }
-        	}
+	
+	for (var ty=y-1; ty<=y+1; ty++) {
+		if (ty >= 0 && ty < height) {
+			for (var tx=x-1; tx<=x+1; tx++) {
+				let inMiddle = (tx == x && ty == y);
+				if (tx >= 0 && tx < width && !(inMiddle)) {
+					let t_index = ty * width + tx;
+					if (minefield[t_index].mined) {
+						count++;
+					}
+				}
+			}
 		}
-    }
-    
-    return count;
+	}
+	
+	return count;
 }
 
 function openAll() {
-    for (var y=0; y<height; y++) {
-    	for (var x=0; x<width; x++) {
-        	tapInCell(x, y);
-        }
-    }
+	for (var y=0; y<height; y++) {
+		for (var x=0; x<width; x++) {
+			tapInCell(x, y);
+		}
+	}
 }
 
 // shuffleArray function — https://stackoverflow.com/a/12646864/3632488 — CC BY-SA 4.0 — StackOverflow users @"Laurens Holst" and @ashleedawg
 function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
+	for (let i = array.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[array[i], array[j]] = [array[j], array[i]];
+	}
 }
 
 </script>
