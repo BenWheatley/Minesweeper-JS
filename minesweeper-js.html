@@ -4,10 +4,22 @@
 <head>
 <script>
 
-let width = 10;
-let height = 10;
+let width = 3;
+let height = 3;
 let mineFraction = 0.1;
 
+const State = {
+    Unexplored: 'Unexplored',
+    Flagged: 'Flagged',
+    Open: 'Open'
+};
+
+class Cell {
+	constructor(mined) {
+		this.mined = mined;
+		this.state = State.Unexplored;
+	}
+}
 
 function makeShuffledMinefield() {
 	let size = width * height;
@@ -16,7 +28,7 @@ function makeShuffledMinefield() {
     var result = new Array(size);
     
     for (var i=0; i<size; i++) {
-    	result[i] = i < mineCount;
+    	result[i] = new Cell(i < mineCount);
     }
     
     shuffleArray(result);
@@ -52,7 +64,7 @@ function tapInCell(x, y) {
     let id = cellID(x, y);
     
     var html = "";
-    if (minefield[index]) {
+    if (minefield[index].mined) {
     	html = "💣";
     } else {
     	let bytesPerSymbol = 3;
@@ -61,7 +73,7 @@ function tapInCell(x, y) {
     document.getElementById(id).innerHTML = html;
 }
 
-function flagCell(x, y) {
+function flagCell(index) {
 	return "🚩";
 }
 
@@ -74,7 +86,7 @@ function surroundingMineCount(x, y) {
                 let inMiddle = (tx == x && ty == y);
                 if (tx >= 0 && tx < width && !(inMiddle)) {
                 	let t_index = ty * width + tx;
-                    if (minefield[t_index]) {
+                    if (minefield[t_index].mined) {
                     	count++;
                     }
                 }
