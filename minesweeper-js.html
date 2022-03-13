@@ -4,9 +4,11 @@
 <head>
 <script>
 
-let width = 3;
-let height = 3;
-let mineFraction = 0.1;
+const width = 3;
+const height = 3;
+const mineFraction = 0.1;
+
+var flagMode = false;
 
 const State = {
 	Unexplored: 'Unexplored',
@@ -22,8 +24,8 @@ class Cell {
 }
 
 function makeShuffledMinefield() {
-	let size = width * height;
-	let mineCount = size * mineFraction;
+	const size = width * height;
+	const mineCount = size * mineFraction;
 	
 	var result = new Array(size);
 	
@@ -55,13 +57,38 @@ function cellID(x, y) {
 	return `${x}-${y}`;
 }
 
+function indexFor(x, y) {
+	return y * width + x;
+}
+
 function cellHTML(x, y) {
 	return `<button id="${cellID(x, y)}" onclick=\"tapInCell(${x},${y})\">⬜️</button>`;
 }
 
 function tapInCell(x, y) {
-	var index = y * width + x;
-	let id = cellID(x, y);
+	if (flagMode) {
+		tryToToggleCellFlag(x, y);
+	} else {
+		openCell(x, y);
+	}
+}
+
+function tryToToggleCellFlag(x, y) {
+	const index = indexFor(x, y);
+	
+	if (minefield[index].state == State.Unexplored) {
+		minefield[index].state = State.Flagged
+	} else if (minefield[index].state == State.Flagged) {
+		minefield[index].state = State.Unexplored
+	}
+	
+	const newInnerText = (minefield[index].state == State.Flagged)? "🚩": "⬜️";
+    document.getElementById(cellID(x, y)).innerText = newInnerText;
+}
+
+function openCell(x, y) {
+	const index = indexFor(x, y);
+	const id = cellID(x, y);
 	
 	var html = "";
 	if (minefield[index].mined) {
@@ -73,8 +100,12 @@ function tapInCell(x, y) {
 	document.getElementById(id).innerHTML = html;
 }
 
-function flagCell(index) {
-	return "🚩";
+function setFlagMode(newMode) {
+	flagMode = newMode;
+	const cssOn = "background-color: #FF000088;";
+	const cssOff = "background-color: white";
+	document.getElementById("flagModeOn").style = flagMode? cssOn : cssOff;
+	document.getElementById("flagModeOff").style = flagMode? cssOff : cssOn;
 }
 
 function surroundingMineCount(x, y) {
@@ -116,11 +147,16 @@ function shuffleArray(array) {
 </script>
 </head>
 
-<body onload="createGrid();">
+<body onload="createGrid(); setFlagMode(false);">
 
 <h1 style="font-family: Sans-serif;">Emojisweeper</h1>
 
-<div id="grid" />
+<div id="grid"></div>
+
+<div style="padding: 1em;">Mode:
+<button id="flagModeOn" onclick="setFlagMode(true);">🚩</button>
+<button id="flagModeOff" onclick="setFlagMode(false);">💣</button>
+</div>
 
 </body>
 </html>
