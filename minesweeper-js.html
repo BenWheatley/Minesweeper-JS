@@ -15,9 +15,9 @@
 </style>
 <script>
 
-const width = 5;
-const height = 5;
-const mineFraction = 0.1;
+var width = 5;
+var height = 5;
+var mineCount = 0;
 
 var flagMode = false;
 
@@ -31,6 +31,12 @@ const GameOverState = {
 	No: "No",
 	Win: "Win",
 	Loss: "Loss"
+}
+
+const Difficulty = {
+	Easy: "Easy",
+	Medium: "Medium",
+	Hard: "Hard"
 }
 
 class Cell {
@@ -47,7 +53,20 @@ class Coordinate {
 	}
 }
 
-function newGame() {
+function newGame(difficulty) {
+	if (difficulty == Difficulty.Easy) {
+		width = 9;
+		height = 9;
+		mineCount = 10;
+	} else if (difficulty == Difficulty.Medium) {
+		width = 16;
+		height = 16;
+		mineCount = 40;
+	} else {
+		width = 30;
+		height = 16;
+		mineCount = 99;
+	}
 	createGrid();
 	minefield = makeShuffledMinefield();
 	document.getElementById("gameOverText").innerText = "";
@@ -55,7 +74,6 @@ function newGame() {
 
 function makeShuffledMinefield() {
 	const size = width * height;
-	mineCount = Math.floor(size * mineFraction);
 	
 	var result = new Array(size);
 	
@@ -69,7 +87,6 @@ function makeShuffledMinefield() {
 }
 
 var minefield = makeShuffledMinefield();
-var mineCount = 0;
 
 function createGrid() {
 	var html = "";
@@ -246,7 +263,7 @@ function shuffleArray(array) {
 </script>
 </head>
 
-<body onload="newGame(); setFlagMode(false);">
+<body onload="newGame(Difficulty.Easy); setFlagMode(false);">
 
 <h1 style="font-family: Sans-serif;">Emojisweeper</h1>
 
@@ -260,7 +277,9 @@ function shuffleArray(array) {
 </div>
 
 <div style="padding: 1em;">
-<button id="flagModeOn" onclick="newGame();">New Game</button>
+<button id="flagModeOn" onclick="newGame(Difficulty.Easy);">New Easy Game</button>
+<button id="flagModeOn" onclick="newGame(Difficulty.Medium);">New Medium Game</button>
+<button id="flagModeOn" onclick="newGame(Difficulty.Hard);">New Hard Game</button>
 </div>
 
 </body>
