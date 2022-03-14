@@ -3,6 +3,16 @@
 
 <head>
 <meta charset="utf-8"/>
+<style>
+.cell {
+	width: 30px;
+	height: 30px;
+	background-color: #DDDDDD;
+	display: inline-block;
+	border: 1px solid grey;
+	text-align: center;
+}
+</style>
 <script>
 
 const width = 5;
@@ -83,7 +93,7 @@ function indexFor(x, y) {
 }
 
 function cellHTML(x, y) {
-	return `<button id="${cellID(x, y)}" onclick=\"tapInCell(${x},${y})\">⬜️</button>`;
+	return `<span class="cell" id="${cellID(x, y)}" onclick=\"tapInCell(${x},${y})\">⬜️</span>`;
 }
 
 function tapInCell(x, y) {
