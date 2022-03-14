@@ -2,10 +2,11 @@
 <html>
 
 <head>
+<meta charset="utf-8"/>
 <script>
 
-const width = 3;
-const height = 3;
+const width = 5;
+const height = 5;
 const mineFraction = 0.1;
 
 var flagMode = false;
@@ -16,6 +17,12 @@ const State = {
 	Open: 'Open'
 };
 
+const GameOverState = {
+	No: "No",
+	Win: "Win",
+	Loss: "Loss"
+}
+
 class Cell {
 	constructor(mined) {
 		this.mined = mined;
@@ -23,9 +30,22 @@ class Cell {
 	}
 }
 
+class Coordinate {
+	constructor(x, y) {
+		this.x = x;
+		this.y = y;
+	}
+}
+
+function newGame() {
+	createGrid();
+	minefield = makeShuffledMinefield();
+	document.getElementById("gameOverText").innerText = "";
+}
+
 function makeShuffledMinefield() {
 	const size = width * height;
-	const mineCount = size * mineFraction;
+	mineCount = Math.floor(size * mineFraction);
 	
 	var result = new Array(size);
 	
@@ -39,6 +59,7 @@ function makeShuffledMinefield() {
 }
 
 var minefield = makeShuffledMinefield();
+var mineCount = 0;
 
 function createGrid() {
 	var html = "";
@@ -76,6 +97,10 @@ function tapInCell(x, y) {
 function tryToToggleCellFlag(x, y) {
 	const index = indexFor(x, y);
 	
+	if (minefield[index].state == State.Open) {
+		return;
+	}
+	
 	if (minefield[index].state == State.Unexplored) {
 		minefield[index].state = State.Flagged
 	} else if (minefield[index].state == State.Flagged) {
@@ -83,21 +108,56 @@ function tryToToggleCellFlag(x, y) {
 	}
 	
 	const newInnerText = (minefield[index].state == State.Flagged)? "🚩": "⬜️";
-    document.getElementById(cellID(x, y)).innerText = newInnerText;
+	document.getElementById(cellID(x, y)).innerText = newInnerText;
+	
+	if (countNumberOfUnexploredOrFlaggedSquares() == mineCount) {
+		processGameOver(GameOverState.Win);
+	}
 }
 
-function openCell(x, y) {
-	const index = indexFor(x, y);
-	const id = cellID(x, y);
+function openCell(x_in, y_in) {
+	var queue = [new Coordinate(x_in, y_in)];
 	
-	var html = "";
-	if (minefield[index].mined) {
-		html = "💣";
-	} else {
-		let bytesPerSymbol = 3;
-		html = "0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣".substr(surroundingMineCount(x, y) * bytesPerSymbol, bytesPerSymbol);
+	var gameOverState = GameOverState.No;
+	
+	while (queue.length > 0) {
+		const currentItem = queue.shift();
+		const x = currentItem.x;
+		const y = currentItem.y;
+		const index = indexFor(currentItem.x, currentItem.y);
+		
+		if (minefield[index].state != State.Unexplored) {
+			continue;
+		}
+		
+		const id = cellID(currentItem.x, currentItem.y);
+		
+		var html = "";
+		if (minefield[index].mined) {
+			html = "💣";
+			gameOverState = GameOverState.Loss;
+		} else {
+			const count = surroundingMineCount(x, y);
+			html = textForCount(count);
+			if (count == 0) {
+				const added = coordinatesOfSurroundingCells(x, y);
+				queue = queue.concat(added);
+			}
+		}
+		document.getElementById(id).innerHTML = html;
+		minefield[index].state = State.Open;
+		
+		if (gameOverState != GameOverState.Loss && countNumberOfUnexploredOrFlaggedSquares() == mineCount) {
+			gameOverState = GameOverState.Win;
+		}
 	}
-	document.getElementById(id).innerHTML = html;
+	
+	processGameOver(gameOverState);
+}
+
+function textForCount(count) {
+	const bytesPerSymbol = 3;
+	return "0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣".substr(count * bytesPerSymbol, bytesPerSymbol);
 }
 
 function setFlagMode(newMode) {
@@ -108,20 +168,33 @@ function setFlagMode(newMode) {
 	document.getElementById("flagModeOff").style = flagMode? cssOff : cssOn;
 }
 
+function coordinatesOfSurroundingCells(x, y) {
+	var result = [];
+	
+	for (var ty=Math.max(y-1, 0); ty<Math.min(y+2, height); ty++) {
+		if (ty < height) {
+			for (var tx=Math.max(x-1, 0); tx<Math.min(x+2, width); tx++) {
+				const inMiddle = ((tx == x) && (ty == y));
+				if (tx < width && !(inMiddle)) {
+					result.push(new Coordinate(tx, ty));
+				}
+			}
+		}
+	}
+	
+	return result;
+}
+
 function surroundingMineCount(x, y) {
 	var count = 0;
 	
-	for (var ty=y-1; ty<=y+1; ty++) {
-		if (ty >= 0 && ty < height) {
-			for (var tx=x-1; tx<=x+1; tx++) {
-				let inMiddle = (tx == x && ty == y);
-				if (tx >= 0 && tx < width && !(inMiddle)) {
-					let t_index = ty * width + tx;
-					if (minefield[t_index].mined) {
-						count++;
-					}
-				}
-			}
+	var coordinates = coordinatesOfSurroundingCells(x, y);
+	
+	for (var i=0; i<coordinates.length; i++) {
+		const c = coordinates[i];
+		const t_index = (c.y * width) + c.x;
+		if (minefield[t_index].mined) {
+			count++;
 		}
 	}
 	
@@ -131,9 +204,25 @@ function surroundingMineCount(x, y) {
 function openAll() {
 	for (var y=0; y<height; y++) {
 		for (var x=0; x<width; x++) {
-			tapInCell(x, y);
+			openCell(x, y);
 		}
 	}
+}
+
+function countNumberOfUnexploredOrFlaggedSquares() {
+	var result = 0;
+	for (var i=0; i<minefield.length; i++) {
+		if (minefield[i].state != State.Open) {
+			result++;
+		}
+	}
+	return result;
+}
+
+function processGameOver(gameOverState) {
+	if (gameOverState == GameOverState.No) { return; }
+	openAll();
+	document.getElementById("gameOverText").innerText = (gameOverState == GameOverState.Win) ? "Success!" : "You lost!";
 }
 
 // shuffleArray function — https://stackoverflow.com/a/12646864/3632488 — CC BY-SA 4.0 — StackOverflow users @"Laurens Holst" and @ashleedawg
@@ -147,15 +236,21 @@ function shuffleArray(array) {
 </script>
 </head>
 
-<body onload="createGrid(); setFlagMode(false);">
+<body onload="newGame(); setFlagMode(false);">
 
 <h1 style="font-family: Sans-serif;">Emojisweeper</h1>
+
+<h1 id="gameOverText"></h1>
 
 <div id="grid"></div>
 
 <div style="padding: 1em;">Mode:
 <button id="flagModeOn" onclick="setFlagMode(true);">🚩</button>
 <button id="flagModeOff" onclick="setFlagMode(false);">💣</button>
+</div>
+
+<div style="padding: 1em;">
+<button id="flagModeOn" onclick="newGame();">New Game</button>
 </div>
 
 </body>
