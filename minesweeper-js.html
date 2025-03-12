@@ -59,6 +59,28 @@ button {
 		display: none;
 	}
 }
+
+#gameOverText {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background: rgba(255, 255, 255, 0.75);
+	padding: 20px;
+	text-align: center;
+	font-size: 36px;
+	font-weight: bold;
+	box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.75);
+	border-radius: 10px;
+	border: 1px solid black;
+	display: none;
+}
+
+#grid-container {
+	position: relative;
+	display: inline-block;
+}
+
 </style>
 <script>
 
@@ -117,6 +139,7 @@ function newGame(difficulty) {
 	createGrid();
 	minefield = makeShuffledMinefield();
 	document.getElementById("gameOverText").innerText = "";
+	gameOverText.style.display = "none";
 }
 
 function makeShuffledMinefield() {
@@ -297,6 +320,7 @@ function processGameOver(gameOverState) {
 	if (gameOverState == GameOverState.No) { return; }
 	openAll();
 	document.getElementById("gameOverText").innerText = (gameOverState == GameOverState.Win) ? "Success!" : "You lost!";
+	gameOverText.style.display = "block";
 }
 
 // shuffleArray function — https://stackoverflow.com/a/12646864/3632488 — CC BY-SA 4.0 — StackOverflow users @"Laurens Holst" and @ashleedawg
@@ -314,9 +338,10 @@ function shuffleArray(array) {
 
 <h1 id="app-title">Emojisweeper</h1>
 
-<h1 id="gameOverText"></h1>
-
-<div id="grid"></div>
+<div id="grid-container">
+	<h1 id="gameOverText"></h1>
+	<div id="grid"></div>
+</div>
 
 <div style="padding: 1em;">Mode:
 <button id="flagModeOn" onclick="setFlagMode(true);">🚩</button>
