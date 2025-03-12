@@ -3,9 +3,36 @@
 
 <head>
 <meta charset="utf-8"/>
+
 <!-- Mobile device scaling -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Enable iOS PWA stuff -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Emojisweeper">
+
 <style>
+body {
+	margin: 0px;
+	overflow-x: hidden;
+	width: 100vw;
+	max-width: 100%;
+	position: relative;
+	touch-action: pan-y; /* Prevents horizontal touch gestures */
+	font-family: Sans-serif;
+	font-size: 14pt;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+button {
+	font-size: 14pt;
+	margin: 8px;
+}
+
 .cell {
 	width: 30px;
 	height: 30px;
@@ -17,13 +44,20 @@
 	font-size: 24px;
 	line-height: 1;
 }
+
 #grid {
-    display: inline-block;
-    white-space: nowrap;
-    overflow: auto;
-    padding: 0;
-    margin: 10px auto; /* Centers when smaller than viewport */
-    max-width: 100%;
+	display: inline-block;
+	white-space: nowrap;
+	overflow: auto;
+	margin: 10px auto; /* Centers when smaller than viewport */
+	padding: 10px;
+	max-width: calc(100% - 20px);
+}
+
+@media (hover: none) and (pointer: coarse) {
+	#app-title {
+		display: none;
+	}
 }
 </style>
 <script>
@@ -278,7 +312,7 @@ function shuffleArray(array) {
 
 <body onload="newGame(Difficulty.Easy); setFlagMode(false);">
 
-<h1 style="font-family: Sans-serif;">Emojisweeper</h1>
+<h1 id="app-title">Emojisweeper</h1>
 
 <h1 id="gameOverText"></h1>
 
@@ -289,7 +323,7 @@ function shuffleArray(array) {
 <button id="flagModeOff" onclick="setFlagMode(false);">💣</button>
 </div>
 
-<div style="padding: 1em;">
+<div style="padding: 1em; text-align: center;">
 <button id="flagModeOn" onclick="newGame(Difficulty.Easy);">New Easy Game</button>
 <button id="flagModeOn" onclick="newGame(Difficulty.Medium);">New Medium Game</button>
 <button id="flagModeOn" onclick="newGame(Difficulty.Hard);">New Hard Game</button>
