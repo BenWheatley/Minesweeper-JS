@@ -1,7 +1,7 @@
 {
     "name": "Emojisweeper",
     "short_name": "Emojisweeper",
-    "start_url": "./",
+    "start_url": "./minesweeper-js.html",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#ffffff",
