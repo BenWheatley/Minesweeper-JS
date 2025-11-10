@@ -59,6 +59,16 @@ button {
 	#app-title {
 		display: none;
 	}
+	.mode-label-mouse {
+		display: none;
+	}
+	.mode-label-touch {
+		display: inline;
+	}
+}
+
+.mode-label-touch {
+	display: none;
 }
 
 #gameOverText {
@@ -89,7 +99,8 @@ var width = 5;
 var height = 5;
 var mineCount = 0;
 
-var flagMode = false;
+var longPressTimer = null;
+var longPressTriggered = false;
 
 const State = {
 	Unexplored: 'Unexplored',
@@ -181,15 +192,52 @@ function indexFor(x, y) {
 }
 
 function cellHTML(x, y) {
-	return `<span class="cell" id="${cellID(x, y)}" onclick=\"tapInCell(${x},${y})\">⬜️</span>`;
+	return `<span class="cell" id="${cellID(x, y)}"
+		onclick=\"tapInCell(${x},${y})\"
+		oncontextmenu=\"rightClickCell(${x},${y}); return false;\"
+		ontouchstart=\"startLongPress(${x},${y})\"
+		ontouchend=\"endLongPress(${x},${y})\"
+		ontouchmove=\"cancelLongPress()\">⬜️</span>`;
 }
 
 function tapInCell(x, y) {
-	if (flagMode) {
-		tryToToggleCellFlag(x, y);
-	} else {
-		openCell(x, y);
+	// Prevent opening if long press was triggered
+	if (longPressTriggered) {
+		longPressTriggered = false;
+		return;
 	}
+	openCell(x, y);
+}
+
+function rightClickCell(x, y) {
+	tryToToggleCellFlag(x, y);
+}
+
+function startLongPress(x, y) {
+	longPressTriggered = false;
+	longPressTimer = setTimeout(() => {
+		longPressTriggered = true;
+		tryToToggleCellFlag(x, y);
+		// Vibrate if supported (mobile feedback)
+		if (navigator.vibrate) {
+			navigator.vibrate(50);
+		}
+	}, 500); // 500ms for long press
+}
+
+function endLongPress(x, y) {
+	if (longPressTimer) {
+		clearTimeout(longPressTimer);
+		longPressTimer = null;
+	}
+}
+
+function cancelLongPress() {
+	if (longPressTimer) {
+		clearTimeout(longPressTimer);
+		longPressTimer = null;
+	}
+	longPressTriggered = false;
 }
 
 function tryToToggleCellFlag(x, y) {
@@ -258,13 +306,6 @@ function textForCount(count) {
 	return emojis[count];
 }
 
-function setFlagMode(newMode) {
-	flagMode = newMode;
-	const cssOn = "background-color: #FF000088;";
-	const cssOff = "background-color: white";
-	document.getElementById("flagModeOn").style = flagMode? cssOn : cssOff;
-	document.getElementById("flagModeOff").style = flagMode? cssOff : cssOn;
-}
 
 function coordinatesOfSurroundingCells(x, y) {
 	var result = [];
@@ -335,7 +376,7 @@ function shuffleArray(array) {
 </script>
 </head>
 
-<body onload="newGame(Difficulty.Easy); setFlagMode(false);">
+<body onload="newGame(Difficulty.Easy);">
 
 <h1 id="app-title">Emojisweeper</h1>
 
@@ -344,9 +385,9 @@ function shuffleArray(array) {
 	<div id="grid"></div>
 </div>
 
-<div style="padding: 1em;">Mode:
-<button id="flagModeOn" onclick="setFlagMode(true);">🚩</button>
-<button id="flagModeOff" onclick="setFlagMode(false);">💣</button>
+<div style="padding: 1em;">
+<span class="mode-label-mouse">Left click: 💣 Right click: 🚩</span>
+<span class="mode-label-touch">Short press: 💣 Long press: 🚩</span>
 </div>
 
 <div style="padding: 1em; text-align: center;">
