@@ -199,9 +199,9 @@ function cellHTML(x, y) {
 	return `<span class="cell" id="${cellID(x, y)}"
 		onclick=\"tapInCell(${x},${y})\"
 		oncontextmenu=\"rightClickCell(${x},${y}); return false;\"
-		ontouchstart=\"startLongPress(${x},${y})\"
-		ontouchend=\"endLongPress(${x},${y})\"
-		ontouchmove=\"cancelLongPress()\">⬜️</span>`;
+		ontouchstart=\"startLongPress(event, ${x},${y})\"
+		ontouchend=\"endLongPress(event, ${x},${y})\"
+		ontouchmove=\"cancelLongPress(event)\">⬜️</span>`;
 }
 
 function tapInCell(x, y) {
@@ -217,7 +217,8 @@ function rightClickCell(x, y) {
 	tryToToggleCellFlag(x, y);
 }
 
-function startLongPress(x, y) {
+function startLongPress(event, x, y) {
+	event.preventDefault();
 	longPressTriggered = false;
 	longPressTimer = setTimeout(() => {
 		longPressTriggered = true;
@@ -229,14 +230,21 @@ function startLongPress(x, y) {
 	}, 500); // 500ms for long press
 }
 
-function endLongPress(x, y) {
+function endLongPress(event, x, y) {
+	event.preventDefault();
 	if (longPressTimer) {
 		clearTimeout(longPressTimer);
 		longPressTimer = null;
 	}
+	// If long press wasn't triggered, handle as a tap
+	if (!longPressTriggered) {
+		tapInCell(x, y);
+	}
+	longPressTriggered = false;
 }
 
-function cancelLongPress() {
+function cancelLongPress(event) {
+	event.preventDefault();
 	if (longPressTimer) {
 		clearTimeout(longPressTimer);
 		longPressTimer = null;
